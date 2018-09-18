@@ -140,6 +140,7 @@
         "network_mode": {"type": "string"},
 
         "networks": {
+          "priority": {"type":"number"},      
           "oneOf": [
             {"$ref": "#/definitions/list_of_strings"},
             {

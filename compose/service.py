@@ -9,7 +9,7 @@ import sys
 from collections import namedtuple
 from collections import OrderedDict
 from operator import attrgetter
-
+import time
 import enum
 import six
 from docker.errors import APIError
@@ -610,18 +610,27 @@ class Service(object):
                 key=lambda t: t[1].get('priority') or 0, reverse=True
             )
         )
-
+    import time
     def connect_container_to_networks(self, container, use_network_aliases=True):
         connected_networks = container.get('NetworkSettings.Networks')
+        for k, v in connected_networks.items():
+            log.info("svc {} network is  key {} / value {}".format(self.name, k, v))
 
+        l = len(self.prioritized_networks.items())
+        le = len(connected_networks)
+        log.info("{} len is {} {}".format(container.id, l, le))
+        for n, t in self.prioritized_networks.items():
+            if n:
+                log.info("network is {} {} {}".format(n, t.get('priority'), t.get('ipv4_address')))
         for network, netdefs in self.prioritized_networks.items():
+            log.info("{} network  {} /  {} ipv4 {} ".format(container.id, network, netdefs.get('priority'), netdefs.get('ipv4_address')))
             if network in connected_networks:
                 if short_id_alias_exists(container, network):
                     continue
                 self.client.disconnect_container_from_network(container.id, network)
 
             aliases = self._get_aliases(netdefs, container) if use_network_aliases else []
-
+            log.info("{} network  {} /  {} ipv4 {} ".format(container.id, network, netdefs.get('priority'), netdefs.get('ipv4_address')))
             self.client.connect_container_to_network(
                 container.id, network,
                 aliases=aliases,
@@ -630,6 +639,7 @@ class Service(object):
                 links=self._get_links(False),
                 link_local_ips=netdefs.get('link_local_ips', None),
             )
+            time.sleep(5)
 
     def remove_duplicate_containers(self, timeout=None):
         for c in self.duplicate_containers():

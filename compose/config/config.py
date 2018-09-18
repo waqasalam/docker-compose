@@ -408,7 +408,6 @@ def load(config_details, compatibility=False):
     check_swarm_only_config(service_dicts, compatibility)
 
     version = V2_3 if compatibility and main_file.version >= V3_0 else main_file.version
-
     return Config(version, service_dicts, volumes, networks, secrets, configs)
 
 
